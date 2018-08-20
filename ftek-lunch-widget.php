@@ -5,7 +5,7 @@ Description: A widget showing the lunches at Chalmers University
 Author: Anton Älgmyr
 Text Domain: chlw
 Domain Path: /languages
-GitHub Plugin URI: fysikteknologsektionen/ftek-lunch-widget
+GitHub Plugin URI: Fysikteknologsektionen/ftek-lunch-widget
  */
 
 /*
