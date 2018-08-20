@@ -1,10 +1,11 @@
 <?php
 /*
-   Plugin Name: Ftek Lunch Widget
-   Description: A widget showing the lunches at Chalmers University
-   Author: Anton Älgmyr
-   Text Domain: chlw
-   Domain Path: /languages
+Plugin Name: Ftek Lunch Widget
+Description: A widget showing the lunches at Chalmers University
+Author: Anton Älgmyr
+Text Domain: chlw
+Domain Path: /languages
+GitHub Plugin URI: fysikteknologsektionen/ftek-lunch-widget
  */
 
 /*
