@@ -1,0 +1,104 @@
+#lunch-menu {
+    font-size: 0.8rem;
+}
+
+#lunch-menu-control {
+    position: relative;
+    top: -3rem;
+    text-align: right;
+    float: right;
+    padding: 0.4rem 0 0.3rem 0.5rem;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+#lunch-menu-button-label img {
+    height: 2em;
+}
+
+#lunch-menu-button-label::after {
+    content: '\25be';
+    display: table-cell;
+    line-height: 2em;
+    vertical-align: middle;
+}
+
+#lunch-menu-button {
+    display: none;
+}
+
+#lunch-menu-button:checked {
+    background-color: hsl(0, 0%, 80%);
+}
+
+#lunch-menu-button:checked + #lunch-menu-restaurants {
+    display: block;
+}
+
+#lunch-menu-restaurants {
+    position: absolute;
+    right: 0;
+    top: 3.5em;
+    clear: both;
+    display: none;
+    padding: 0.5rem;
+    text-align: right;
+    list-style-type: none;
+    background-color: hsl(0, 0%, 100%);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0.2em rgba(0, 0, 0, 0.1);
+}
+
+#lunch-menu-restaurants li {
+    padding: 0.5em;
+    margin: 0;
+    white-space: nowrap;
+}
+
+#lunch-menu dl {
+    margin-bottom: 1em;
+}
+
+#lunch-menu dt {
+    font-style: italic;
+    font-weight: bold;
+    margin-bottom: 0.2em;
+}
+
+.lunch-menu-dish {
+    display: table-cell;
+    width: 85%;
+}
+
+.lunch-menu-price {
+    font-size: 1.2em;
+    display: table-cell;
+    text-align: right;
+    white-space: nowrap;
+    padding-left: 0.5em;
+    width: 5em;
+}
+
+.lunch-menu-dish img {
+    margin-left: 0.2em;
+    height: 0.8em;
+}
+
+.lunch-menu-co2 {
+    padding: 0.2em;
+    margin: 0.5em 0;
+    width: 0%;
+    max-width: 100%;
+    text-overflow: clip;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 0.8em;
+    color: white;
+    background-color: hsl(120, 100%, 28%);
+    font-weight: bold;
+    transition: all 1s ease;
+}
+
+.lunch-menu-co2 span {
+    font-weight: normal;
+    opacity: 0.5;
+}
