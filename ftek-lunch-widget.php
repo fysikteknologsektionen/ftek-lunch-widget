@@ -2,7 +2,8 @@
 /*
 Plugin Name: Ftek Lunch Widget
 Description: A widget showing the lunches at Chalmers University
-Author: Anton Älgmyr
+Author: Johan Winther
+Version: 1.0
 Text Domain: chlw
 Domain Path: /languages
 GitHub Plugin URI: Fysikteknologsektionen/ftek-lunch-widget
@@ -13,24 +14,6 @@ function init_chlw() {
   // Load translations
   load_plugin_textdomain('chlw', false, basename( dirname( __FILE__ ) ) . '/languages' );
 }
-
-/*
-function chlw_format_dish($dish, $lang) {
-  $inEnglish = $lang != "sv";
-
-  $css = 'style="height:1.2em;width:auto;margin:1pt;margin-left:4pt;vertical-align:middle"';
-
-  $dishStr = $dish->displayNames[$inEnglish]->displayName;
-  $dishStr = $dishStr . "<span style='white-space:nowrap;'>";
-  foreach ($dish->allergens as $allergen) {
-    $imageUrl = str_replace("http://", "https://", $allergen->imageURLDark);
-    $dishStr = $dishStr . " <img src=\"" . $imageUrl . "\" " . $css . "/>";
-  }
-  $dishStr = $dishStr . "</span>";
-
-  return $dishStr;
-}
-*/
 
 function chlw_get_restaurants() {
   return array(
@@ -45,42 +28,6 @@ function chlw_get_restaurants() {
     "Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
     );
 }
-
-/*function chlw_get_json_menu() {
-  $all_restaurants = chlw_get_restaurants();
-  $allMenus = array();
-  foreach ($all_restaurants as $restaurant) {
-    $url = "http://carboncloudrestaurantapi.azurewebsites.net/api/menuscreen/getdataweek?restaurantid=$restaurant";
-    $json = file_get_contents($url);
-    $allMenus[$restaurant] = json_decode($json);
-  }
-  return $allMenus;
-}
-
-function chlw_get_menu($restName, $lang) {
-
-  $restId = chlw_get_restaurants()[$restName];
-
-  $url = "http://carboncloudrestaurantapi.azurewebsites.net/api/menuscreen/getdataday?restaurantid=$restId";
-  $json = file_get_contents($url);
-  $dayMenu = json_decode($json);
-
-  // For every category, make a list of dishes
-  $menu = array();
-  if (isset($dayMenu->recipeCategories)) {
-     foreach ($dayMenu->recipeCategories as $cat) {
-       $catName = $lang == "sv" ? $cat->name : $cat->nameEnglish;
-
-       $menu[$catName] = array_map(
-           function($dish) use ($lang) {
-             return chlw_format_dish($dish, $lang);
-           },
-           $cat->recipes);
-     }
-  }
-
-  return $menu;
-}*/
 
 /*
  *  Widget
@@ -102,10 +49,6 @@ class ChalmersLunchWidget extends WP_Widget {
   function widget( $args, $instance ) {
     // Default Settings
     $all_restaurants = chlw_get_restaurants();
-    $restaurants = array(
-      'Kårrestaurangen',
-      'Express',
-    );
     $lang = qtrans_getLanguage();
     $lunch_data = array(
       'restaurants' => $all_restaurants,
@@ -113,7 +56,6 @@ class ChalmersLunchWidget extends WP_Widget {
         'noLunch' => __('No lunch today','chlw'),
         'tomorrowsLunch' => __("Tomorrow's lunch","chlw"),
       ),
-      //'allMenus' => chlw_get_json_menu(),
     );
     wp_enqueue_style('ftek-lunch-widget-style', plugin_dir_url( __FILE__ ) .'css/ftek-lunch-widget.css', null, null, 'all' );
     wp_enqueue_script('ftek-lunch-widget-script', plugin_dir_url( __FILE__ ) .'js/ftek-lunch-widget.js', array( 'jquery' ), null, true );
@@ -133,8 +75,10 @@ class ChalmersLunchWidget extends WP_Widget {
       echo '<li><label>'.$restName.'<input id="rest-'.$restID.'" type="checkbox" value="'.$restID.'" /></label></li>';
     }
     echo '</menu></div>';
+    echo '<div id="lunch-menu-day">';
+    echo '<button class="button" data-action="prev">&laquo;</button>';
+    echo '<button class="button" data-action="next">&raquo;</button></div>';
     echo '<div id="lunch-menu">'.__('Please enable Javascript.','chlw').'</div>';
-    echo '<div id="placeholder"></div>';
 
     echo $args['after_widget'];
   }

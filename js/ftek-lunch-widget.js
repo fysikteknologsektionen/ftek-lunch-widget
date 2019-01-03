@@ -13,96 +13,106 @@ function setCookie(name, value, days) {
     document.cookie = name + "=" + (value || "")  + expires + "; path=/";
 }
 
-function setupLunchMenu(lunchData) {
+function setupLunchMenu() {
     
-    window.allMenus = null;
-    window.selectedRestaurants = ['3d519481-1667-4cad-d2a3-08d558129279','21f31565-5c2b-4b47-d2a1-08d558129279'];
-    window.selectedDate = (new Date());
-    if (selectedDate.getHours() > 15) {
-        selectedDate.setDate(selectedDate.getDate() + 1);
+    lunchData.selectedRestaurants = ['3d519481-1667-4cad-d2a3-08d558129279','21f31565-5c2b-4b47-d2a1-08d558129279'];
+    lunchData.selectedDate = (new Date());
+    if (lunchData.selectedDate.getHours() > 15) {
+        lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + 1);
     }
     let restaurants = getCookieValue('ftek-lunch-restaurants');
     if (restaurants) {
         selectedRestaurants = restaurants.split(',');
+        lunchData.selectedRestaurants = selectedRestaurants.filter(function(rest) {
+            return Object.values(lunchData.restaurants).includes(rest);
+        });
+        setCookie('ftek-lunch-restaurants', lunchData.selectedRestaurants, 365);
     }
     
-    jQuery('#lunch-menu-restaurants li input').each(function(){
-        if (selectedRestaurants.includes(this.value)) {
-            this.checked = true;
-        }
+    lunchData.selectedRestaurants.forEach(function(restID) {
+        document.getElementById('rest-'+restID).checked = true;
     });
     
     jQuery('#lunch-menu-restaurants li input').change(function(){
         let restID = this.value;
         if (this.checked) {
-            if (!selectedRestaurants.includes(restID)) {
-                selectedRestaurants.push(restID);
+            if (!lunchData.selectedRestaurants.includes(restID)) {
+                lunchData.selectedRestaurants.push(restID);
             }
         } else {
-            if (selectedRestaurants.includes(restID)) {
-                selectedRestaurants.splice(selectedRestaurants.indexOf(restID), 1);
+            if (lunchData.selectedRestaurants.includes(restID)) {
+                lunchData.selectedRestaurants.splice(lunchData.selectedRestaurants.indexOf(restID), 1);
             }
         }
-        setCookie('ftek-lunch-restaurants', selectedRestaurants, 365);
-        fetchLunchMenu(lunchData, selectedDate)
+        setCookie('ftek-lunch-restaurants', lunchData.selectedRestaurants, 365);
+        fetchLunchMenu()
+    });
+
+    jQuery('#lunch-menu-day > button').click(function(){
+        let dateChange = (this.getAttribute('data-action')==='next'?1:-1);
+        lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + dateChange);
+        this.parentElement.previousElementSibling.previousElementSibling.children[0].text = 'Lunch '+lunchData.selectedDate.getDate()+'/'+(lunchData.selectedDate.getMonth()+1);
+        fetchLunchMenu()
     });
 }
 
-function fetchLunchMenu(lunchData, date) {
-    dateStr = date.toISOString().substr(0,10);
-    let requests = Object.values(selectedRestaurants).map(function(restaurantId){
-        return fetch('https://carbonateapiprod.azurewebsites.net/api/v1/mealprovidingunits/'+restaurantId+'/dishoccurrences?startDate='+dateStr+'&endDate='+dateStr)
+function fetchLunchMenu() {
+    jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
+
+    dateStr = lunchData.selectedDate.toISOString().substr(0,10);
+    selectedRestaurantsOrdered = Object.values(lunchData.restaurants).filter(function(rest) {
+        return lunchData.selectedRestaurants.includes(rest);
+    });
+    let requests = selectedRestaurantsOrdered.map(function(restID){
+        return fetch('https://carbonateapiprod.azurewebsites.net/api/v1/mealprovidingunits/'+restID+'/dishoccurrences?startDate='+dateStr+'&endDate='+dateStr)
         .then(function(response) {
             return response.json();
+        }).then(function(json){
+            return parseLunchMenu(json);
         });
-        //return lunchData.allMenus[restaurantId];
     });
     Promise.all(requests).then(function(allMenus){
-        console.log(allMenus);
-        /*
-        allMenus = allMenus.map(function(menu){return parseLunchMenu(menu)});
-        allMenus = orderLunchMenu(allMenus);
-        window.allMenus = allMenus;
-        */
-       printLunchMenu(lunchData);
+        lunchData.allMenus = allMenus;
+        printLunchMenu();
     });
     
 }
 
-function printLunchMenu(lunchData) {
-    menu = allMenus;
-    if (!menu) {
-        jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2><p>'+selectedDate+'</p>');
+function printLunchMenu() {
+    if (lunchData.allMenus.length === 0) {
+        jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2><p>'+lunchData.selectedDate+'</p>');
         return;
     }
     let html = '';
-    menu.map(function(restMenu, i){
-        if (selectedRestaurants.includes(Object.values(lunchData.restaurants)[i]) && restMenu) {
-            html += '<h2>' + Object.keys(lunchData.restaurants)[i] + '</h2>';
-            html += '<dl>';
-            restMenu.map(function(dish){
+    lunchData.allMenus.map(function(restMenu, i){
+        if (!restMenu || restMenu.dishes.filter(function(dish){return dish.recipes.length>0}).length === 0) return;
+
+        html += '<h2>' + restMenu.restaurantName + '</h2>';
+        html += '<dl>';
+        restMenu.dishes.map(function(dish){
+            if (dish.recipes.length > 0) {
                 html += '<dt>'+dish.name+'</dt>';
                 dish.recipes.map(function(recipe){
                     html += '<dd class="lunch-menu-dish">'+recipe.dish;
-                    if (recipe.allergens[0]) {
-                        let allergens = recipe.allergens.map(function(url){
-                            let title = url.split('/').slice(-1)[0].split('.')[0];
-                            title = title.charAt(0).toUpperCase() + title.slice(1);
-                            return '<img src="'+url+'" alt="'+title+'" title="'+title+'" />';
+                    if (recipe.allergens.length > 0) {
+                        let allergens = recipe.allergens.map(function(allergy){
+                            return '<img src="'+allergy.imageURL+'" alt="'+allergy.name+'" title="'+allergy.name+'" />';
                         }).join('');
                         html += allergens;
                     }
                     html += '</dd>';
-                    html += '<dd class="lunch-menu-price">'+recipe.price+' kr</dd>';
-                    if (parseFloat(recipe.CO2) > 0) {
+                    if (recipe.price > 0) {
+                        html += '<dd class="lunch-menu-price">'+recipe.price+' kr</dd>';
+                    }
+                    if (recipe.CO2 > 0) {
                         html += '<dd class="lunch-menu-co2" title="'+recipe.CO2+' kg CO2-eq" data-co2="'+recipe.CO2+'">'+recipe.CO2+' <span>kg CO2-eq</span></dd>';
                     } else {
                         html += '<dd class="lunch-menu-co2" style="height:1px;visibility:hidden;margin:0;"></dd>';
                     }
                 });
-            });
-            html += '</dl>';
-        }
+            }
+        });
+        html += '</dl>';
     });
     jQuery("#lunch-menu").removeClass('spinner').html(html);
     setTimeout(function(){
@@ -116,50 +126,40 @@ function printLunchMenu(lunchData) {
     }, 1);
 }
 
-function orderLunchMenu(allMenus) {
-    let allMenusNew = [];
-    for (let i = 0; i < allMenus[0].length; i++) {
-        allMenusNew.push(allMenus.map(function(menu){return menu[i]})); 
-    }
-    return allMenusNew;
-}
-
 function parseLunchMenu(json) {
-    let menus = json.menus;;
-    if (menus.length === 0) {
-        return false;
+    if (json.length === 0) {
+        return null;
     }
-    // Only show today and forward
-    menus = menus.filter(function(menuDay){
-        return ((new Date(menuDay.menuDate)).getDay()+6)%7 >= ((new Date()).getDay()+6)%7;
-    });
-    let nameKey = ['name', 'nameEnglish'][+(ftek_info.language === 'en-US')];
-    menus = menus.map(function(menu) {
-        return menu.recipeCategories.map(function(menuCat){
+    let lang = +(ftek_info.language === 'en-US');
+    let nameKey = ['dishTypeName','dishTypeNameEnglish'][lang];
+    let displayNameCategoryName = ['Swedish','English'][lang];
+    menus = {
+        restaurantName: json[0].mealProvidingUnit.mealProvidingUnitName,
+        restID: json[0].mealProvidingUnitID,
+        dishes: json[0].availableDishTypes.map(function(dishType) {
             return {
-                name: menuCat[nameKey],
-                recipes: menuCat.recipes.map(function(recipe) {
+                name: dishType[nameKey],
+                recipes: json.filter(function(dish){return dish.dishTypeID === dishType.id;}).map(function(recipe){
                     return {
-                        dish: recipe.displayNames[+(ftek_info.language === 'en-US')].displayName,
-                        CO2: recipe.cO2e,
-                        allergens : recipe.allergens.map(function(allergy){
-                            if (allergy.imageURLDark) {
-                                return allergy.imageURLDark.replace(/http/g,'https');
-                            } else {
-                                return null;
+                        dish: recipe.displayNames.filter(function(displayName){
+                            return displayName.displayNameCategory.displayNameCategoryName===displayNameCategoryName
+                        })[0].dishDisplayName,
+                        CO2: Math.round(recipe.dish.totalEmission*100)/100,
+                        allergens: recipe.dish.recipes[0].allergens.map(function(allergy){
+                            return {
+                                name: allergy.allergenCode.charAt(0).toUpperCase() + allergy.allergenCode.slice(1),
+                                imageURL: allergy.allergenURL,
                             }
                         }),
-                        price: recipe.priceStudentUnion,};
-                    }),
-                };
-            });
-        }
-    );
+                        price: recipe.dish.price,
+                    }
+                }),
+            };
+        })
+    }
+
     return menus;
 }
 
-jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
-jQuery('.ftek_lunch_widget #placeholder').hide();
-
-setupLunchMenu(lunchData);
-fetchLunchMenu(lunchData, (new Date()));
+setupLunchMenu();
+fetchLunchMenu();
