@@ -15,23 +15,25 @@ function setCookie(name, value, days) {
 
 function setupLunchMenu(lunchData) {
     
-    window.allMenus = {};
-    window.selectedWeekDayIndex = 0;
-    window.selectedRestaurants = [5, 7];
+    window.allMenus = null;
+    window.selectedRestaurants = ['3d519481-1667-4cad-d2a3-08d558129279','21f31565-5c2b-4b47-d2a1-08d558129279'];
+    window.selectedDate = (new Date());
+    if (selectedDate.getHours() > 15) {
+        selectedDate.setDate(selectedDate.getDate() + 1);
+    }
     let restaurants = getCookieValue('ftek-lunch-restaurants');
     if (restaurants) {
         selectedRestaurants = restaurants.split(',');
-        selectedRestaurants = selectedRestaurants.map(function(x){return parseInt(x);});
     }
     
     jQuery('#lunch-menu-restaurants li input').each(function(){
-        if (selectedRestaurants.includes(parseInt(jQuery(this).val()))) {
-            jQuery(this).prop( "checked", true );
+        if (selectedRestaurants.includes(this.value)) {
+            this.checked = true;
         }
     });
     
     jQuery('#lunch-menu-restaurants li input').change(function(){
-        let restID = parseInt(jQuery(this).val());
+        let restID = this.value;
         if (this.checked) {
             if (!selectedRestaurants.includes(restID)) {
                 selectedRestaurants.push(restID);
@@ -42,32 +44,35 @@ function setupLunchMenu(lunchData) {
             }
         }
         setCookie('ftek-lunch-restaurants', selectedRestaurants, 365);
-        printLunchMenu();
+        fetchLunchMenu(lunchData, selectedDate)
     });
 }
 
-function fetchLunchMenu(lunchData) {
-    
-    let requests = Object.values(lunchData.restaurants).map(function(restaurantId){
-        /*return fetch('http://carboncloudrestaurantapi.azurewebsites.net/api/menuscreen/getdataweek?restaurantid='+restaurantId)
+function fetchLunchMenu(lunchData, date) {
+    dateStr = date.toISOString().substr(0,10);
+    let requests = Object.values(selectedRestaurants).map(function(restaurantId){
+        return fetch('https://carbonateapiprod.azurewebsites.net/api/v1/mealprovidingunits/'+restaurantId+'/dishoccurrences?startDate='+dateStr+'&endDate='+dateStr)
         .then(function(response) {
             return response.json();
-        }); */
-        return lunchData.allMenus[restaurantId];
+        });
+        //return lunchData.allMenus[restaurantId];
     });
     Promise.all(requests).then(function(allMenus){
+        console.log(allMenus);
+        /*
         allMenus = allMenus.map(function(menu){return parseLunchMenu(menu)});
         allMenus = orderLunchMenu(allMenus);
         window.allMenus = allMenus;
-        printLunchMenu();
+        */
+       printLunchMenu(lunchData);
     });
     
 }
 
-function printLunchMenu() {
-    menu = allMenus[selectedWeekDayIndex];
+function printLunchMenu(lunchData) {
+    menu = allMenus;
     if (!menu) {
-        jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2>');
+        jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2><p>'+selectedDate+'</p>');
         return;
     }
     let html = '';
@@ -157,4 +162,4 @@ jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
 jQuery('.ftek_lunch_widget #placeholder').hide();
 
 setupLunchMenu(lunchData);
-fetchLunchMenu(lunchData);
+fetchLunchMenu(lunchData, (new Date()));
