@@ -14,7 +14,7 @@ function init_chlw() {
   load_plugin_textdomain('chlw', false, basename( dirname( __FILE__ ) ) . '/languages' );
 }
 
-
+/*
 function chlw_format_dish($dish, $lang) {
   $inEnglish = $lang != "sv";
 
@@ -30,22 +30,23 @@ function chlw_format_dish($dish, $lang) {
 
   return $dishStr;
 }
+*/
 
 function chlw_get_restaurants() {
   return array(
-    "Express" => 7,
-    "Kårrestaurangen" => 5,
-    /*"L's Kitchen" => 8,
-    //"L's Express" => 9,
-    "L's Resto" => 32,
-    "Linsen" => 33,
-    "Hyllan" => 34,
-    "Kokboken" => 35,
-    "S.M.A.K" => 42,*/
+    "Express" => '3d519481-1667-4cad-d2a3-08d558129279',
+    "Kårrestaurangen" => '21f31565-5c2b-4b47-d2a1-08d558129279',
+    "Linsen" => 'b672efaf-032a-4bb8-d2a5-08d558129279',
+    "Hyllan" => 'a7f0f75b-c1cb-4fc3-d2a6-08d558129279',
+    "S.M.A.K" => '3ac68e11-bcee-425e-d2a8-08d558129279',
+    "L's Express" => '871c63d7-4ddb-46b8-d2a0-08d558129279',
+    "L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
+    "L's Resto" => 'c6742862-3cc5-47b1-d2a4-08d558129279',
+    "Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
     );
 }
 
-function chlw_get_json_menu() {
+/*function chlw_get_json_menu() {
   $all_restaurants = chlw_get_restaurants();
   $allMenus = array();
   foreach ($all_restaurants as $restaurant) {
@@ -79,7 +80,7 @@ function chlw_get_menu($restName, $lang) {
   }
 
   return $menu;
-}
+}*/
 
 /*
  *  Widget
@@ -112,7 +113,7 @@ class ChalmersLunchWidget extends WP_Widget {
         'noLunch' => __('No lunch today','chlw'),
         'tomorrowsLunch' => __("Tomorrow's lunch","chlw"),
       ),
-      'allMenus' => chlw_get_json_menu(),
+      //'allMenus' => chlw_get_json_menu(),
     );
     wp_enqueue_style('ftek-lunch-widget-style', plugin_dir_url( __FILE__ ) .'css/ftek-lunch-widget.css', null, null, 'all' );
     wp_enqueue_script('ftek-lunch-widget-script', plugin_dir_url( __FILE__ ) .'js/ftek-lunch-widget.js', array( 'jquery' ), null, true );
@@ -133,42 +134,14 @@ class ChalmersLunchWidget extends WP_Widget {
     }
     echo '</menu></div>';
     echo '<div id="lunch-menu">'.__('Please enable Javascript.','chlw').'</div>';
-    echo '<div id="placeholder">';
-    // Get all menus
-    foreach ($restaurants as $restName) {
-      // Get formatted dishes for all categories for the restaurant 
-      $menu = chlw_get_menu($restName, $lang);
+    echo '<div id="placeholder"></div>';
 
-      ksort($menu, SORT_STRING);
-
-      echo "<h3 class='lunch-place'>$restName</h3>";
-
-      if ($menu == NULL) {
-        echo __("No lunch today", 'chlw');
-        continue;
-      }
-
-      echo "<ul class='meals'>";
-      foreach ($menu as $cat => $dishes) {
-        echo "<li class='meal'>";
-        echo "<span class='meal-title'>$cat</span>";
-        echo "<ul>";
-
-        foreach ($dishes as $dish) {
-          echo "<li class='dish'>$dish</li>";
-        }
-        echo "</ul>";
-        echo "</li>";
-      }
-      echo "</ul>";
-    }
-    echo '</div>';
     echo $args['after_widget'];
   }
 
   function update( $new_instance, $old_instance ) {
     // Save widget options
-    // Todo: add settings for what restaurants to display
+    // No widget options are currently planned
   }
 
   function form( $instance ) {
