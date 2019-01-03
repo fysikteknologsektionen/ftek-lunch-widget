@@ -8,18 +8,6 @@ Domain Path: /languages
 GitHub Plugin URI: Fysikteknologsektionen/ftek-lunch-widget
  */
 
-/*
-  Complete rewrite of Pontus' code to handle the changes made by Chalmers.
-  There is no RSS anymore. For better or worse JSON is the new format we have
-  to deal with. It's nice and detailed, but it's unsure how to fetch menus for
-  a specific that (i.e. not today) which breaks the nice "tomorrow's lunch"
-  functionality for now.
-
-  Probably a good idea to reach out to the devs that did this change and ask
-  what's possible.
-*/
-
-
 add_action( 'init', 'init_chlw' );
 function init_chlw() {
   // Load translations
