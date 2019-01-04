@@ -3,7 +3,7 @@
 Plugin Name: Ftek Lunch Widget
 Description: A widget showing the lunches at Chalmers University
 Author: Johan Winther
-Version: 1.0
+Version: 1.1.0
 Text Domain: chlw
 Domain Path: /languages
 GitHub Plugin URI: Fysikteknologsektionen/ftek-lunch-widget
@@ -61,13 +61,17 @@ class ChalmersLunchWidget extends WP_Widget {
     wp_enqueue_script('ftek-lunch-widget-script', plugin_dir_url( __FILE__ ) .'js/ftek-lunch-widget.js', array( 'jquery' ), null, true );
     wp_localize_script( 'ftek-lunch-widget-script', 'lunchData', $lunch_data );
     
-    $title = __("Today's lunch", 'chlw');
+    $title = "Lunch";
 
     // Some WP fluff
     echo $args['before_widget'];
     $title = apply_filters( 'widget_title', $title);
-    echo $args['before_title'] . '<a href="https://chalmerskonferens.se/lunchmenyer-johanneberg/">' . $title .'</a>'. $args['after_title'];
+    echo $args['before_title'] . '<a href="https://chalmerskonferens.se/lunchmenyer-johanneberg/" target="_blank" class="no-external">' . $title .'</a>'. $args['after_title'];
     
+    echo '<div id="lunch-menu-day">';
+    echo '<button class="button" data-action="prev">&laquo;</button>';
+    echo '<span></span>';
+    echo '<button class="button" data-action="next">&raquo;</button>';
     echo '<div id="lunch-menu-control">';
     echo '<label id="lunch-menu-button-label" for="lunch-menu-button"><img src="'.plugin_dir_url( __FILE__ ) .'images/spoon-fork.svg" /></label><input id="lunch-menu-button" type="checkbox" />';
     echo '<menu id="lunch-menu-restaurants">';
@@ -75,9 +79,7 @@ class ChalmersLunchWidget extends WP_Widget {
       echo '<li><label>'.$restName.'<input id="rest-'.$restID.'" type="checkbox" value="'.$restID.'" /></label></li>';
     }
     echo '</menu></div>';
-    echo '<div id="lunch-menu-day">';
-    echo '<button class="button" data-action="prev">&laquo;</button>';
-    echo '<button class="button" data-action="next">&raquo;</button></div>';
+    echo '</div>';
     echo '<div id="lunch-menu">'.__('Please enable Javascript.','chlw').'</div>';
 
     echo $args['after_widget'];

@@ -3,10 +3,7 @@
 }
 
 #lunch-menu-control {
-    position: relative;
-    top: -3rem;
     text-align: right;
-    float: right;
     padding: 0.4rem 0 0.3rem 0.5rem;
     border: 1px solid rgba(0,0,0,0.1);
 }
@@ -31,15 +28,14 @@
 }
 
 #lunch-menu-button:checked + #lunch-menu-restaurants {
-    display: block;
+    visibility: unset;
 }
 
 #lunch-menu-restaurants {
     position: absolute;
     right: 0;
     top: 3.5em;
-    clear: both;
-    display: none;
+    visibility: hidden;
     padding: 0.5rem;
     text-align: right;
     list-style-type: none;
@@ -105,9 +101,17 @@
 }
 
 #lunch-menu-day {
+    position: relative;
     margin-bottom: 0.5em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 #lunch-menu-day > button {
-    padding: 0.1em 0.5em;
+    margin: 0;
+}
+
+#lunch-menu-day > span {
+    margin: 0 1em;
 }

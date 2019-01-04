@@ -20,6 +20,7 @@ function setupLunchMenu() {
     if (lunchData.selectedDate.getHours() > 15) {
         lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + 1);
     }
+    document.getElementById('lunch-menu-day').children[1].textContent = lunchData.selectedDate.toLocaleDateString(ftek_info.language, { weekday: 'long', day: 'numeric', month: 'numeric' });
     let restaurants = getCookieValue('ftek-lunch-restaurants');
     if (restaurants) {
         selectedRestaurants = restaurants.split(',');
@@ -51,7 +52,7 @@ function setupLunchMenu() {
     jQuery('#lunch-menu-day > button').click(function(){
         let dateChange = (this.getAttribute('data-action')==='next'?1:-1);
         lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + dateChange);
-        this.parentElement.previousElementSibling.previousElementSibling.children[0].text = 'Lunch '+lunchData.selectedDate.getDate()+'/'+(lunchData.selectedDate.getMonth()+1);
+        this.parentElement.children[1].textContent = lunchData.selectedDate.toLocaleDateString(ftek_info.language, { weekday: 'long', day: 'numeric', month: 'numeric' });
         fetchLunchMenu()
     });
 }
