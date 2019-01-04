@@ -75,13 +75,15 @@ function fetchLunchMenu() {
     Promise.all(requests).then(function(allMenus){
         lunchData.allMenus = allMenus;
         printLunchMenu();
+    }).catch(function(e){
+        jQuery("#lunch-menu").removeClass('spinner').html('<h2>Could not load.</h2>');
     });
     
 }
 
 function printLunchMenu() {
     if (lunchData.allMenus.length === 0) {
-        jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2><p>'+lunchData.selectedDate+'</p>');
+        jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2>');
         return;
     }
     let html = '';
