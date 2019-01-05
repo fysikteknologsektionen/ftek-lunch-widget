@@ -82,7 +82,7 @@ function fetchLunchMenu() {
 }
 
 function printLunchMenu() {
-    if (lunchData.allMenus.length === 0) {
+    if (lunchData.allMenus.length === 0 || lunchData.allMenus.every(e => e === null)) {
         jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2>');
         return;
     }
