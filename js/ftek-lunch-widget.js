@@ -60,7 +60,7 @@ function setupLunchMenu() {
 function fetchLunchMenu() {
     jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
 
-    dateStr = lunchData.selectedDate.toISOString().substr(0,10);
+    dateStr = lunchData.selectedDate.toLocaleDateString('sv-SE');
     selectedRestaurantsOrdered = Object.values(lunchData.restaurants).filter(function(rest) {
         return lunchData.selectedRestaurants.includes(rest);
     });
