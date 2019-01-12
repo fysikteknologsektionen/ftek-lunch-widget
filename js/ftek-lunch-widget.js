@@ -13,6 +13,19 @@ function setCookie(name, value, days) {
     document.cookie = name + "=" + (value || "")  + expires + "; path=/";
 }
 
+function getMondayOfWeek(d) {
+    d = new Date(d);
+    var day = d.getDay(),
+    diff = d.getDate() - day + (day == 0 ? -6:1);
+    return new Date(d.setDate(diff));
+}
+
+function sameDate(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+}
+
 function setupLunchMenu() {
     
     lunchData.selectedRestaurants = ['3d519481-1667-4cad-d2a3-08d558129279','21f31565-5c2b-4b47-d2a1-08d558129279'];
@@ -48,7 +61,7 @@ function setupLunchMenu() {
         setCookie('ftek-lunch-restaurants', lunchData.selectedRestaurants, 365);
         fetchLunchMenu()
     });
-
+    
     jQuery('#lunch-menu-day > button').click(function(){
         let dateChange = (this.getAttribute('data-action')==='next'?1:-1);
         lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + dateChange);
@@ -59,13 +72,16 @@ function setupLunchMenu() {
 
 function fetchLunchMenu() {
     jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
-
-    dateStr = lunchData.selectedDate.toLocaleDateString('sv-SE');
+    var monday = getMondayOfWeek(lunchData.selectedDate);
+    var friday = getMondayOfWeek(lunchData.selectedDate);
+    friday.setDate(friday.getDate()+4);
+    var monStr = monday.toLocaleDateString('sv-SE');
+    var friStr = friday.toLocaleDateString('sv-SE');
     selectedRestaurantsOrdered = Object.values(lunchData.restaurants).filter(function(rest) {
         return lunchData.selectedRestaurants.includes(rest);
     });
     let requests = selectedRestaurantsOrdered.map(function(restID){
-        return fetch('https://carbonateapiprod.azurewebsites.net/api/v1/mealprovidingunits/'+restID+'/dishoccurrences?startDate='+dateStr+'&endDate='+dateStr)
+        return fetch('https://carbonateapiprod.azurewebsites.net/api/v1/mealprovidingunits/'+restID+'/dishoccurrences?startDate='+monStr+'&endDate='+friStr)
         .then(function(response) {
             return response.json();
         }).then(function(json){
@@ -82,14 +98,14 @@ function fetchLunchMenu() {
 }
 
 function printLunchMenu() {
-    if (lunchData.allMenus.length === 0 || lunchData.allMenus.every(e => e === null)) {
+    if (lunchData.allMenus.length === 0 || lunchData.allMenus.every(e => e === null) || lunchData.allMenus.every(e => e.dishes.every(e=>e.recipes.length === 0))) {
         jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2>');
         return;
     }
     let html = '';
     lunchData.allMenus.map(function(restMenu, i){
         if (!restMenu || restMenu.dishes.filter(function(dish){return dish.recipes.length>0}).length === 0) return;
-
+        
         html += '<h2>' + restMenu.restaurantName + '</h2>';
         html += '<dl>';
         restMenu.dishes.map(function(dish){
@@ -142,7 +158,9 @@ function parseLunchMenu(json) {
         dishes: json[0].availableDishTypes.map(function(dishType) {
             return {
                 name: dishType[nameKey],
-                recipes: json.filter(function(dish){return dish.dishTypeID === dishType.id;}).map(function(recipe){
+                recipes: json.filter(function(dish){
+                    return (dish.dishTypeID === dishType.id && sameDate(lunchData.selectedDate, new Date(dish.startDate)));
+                }).map(function(recipe){
                     return {
                         dish: recipe.displayNames.filter(function(displayName){
                             return displayName.displayNameCategory.displayNameCategoryName===displayNameCategoryName
@@ -160,7 +178,7 @@ function parseLunchMenu(json) {
             };
         })
     }
-
+    
     return menus;
 }
 
