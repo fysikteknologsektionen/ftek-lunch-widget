@@ -1,4 +1,5 @@
 function getCookieValue(a) {
+    // Cookies are used to save your selection of restaurants
     var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
     return b ? b.pop() : '';
 }
@@ -14,6 +15,7 @@ function setCookie(name, value, days) {
 }
 
 function getMondayOfWeek(d) {
+    // Not used in current version
     d = new Date(d);
     var day = d.getDay(),
     diff = d.getDate() - day + (day == 0 ? -6:1);
@@ -28,7 +30,7 @@ function sameDate(d1, d2) {
 
 function setupLunchMenu() {
     
-    lunchData.selectedRestaurants = ['3d519481-1667-4cad-d2a3-08d558129279','21f31565-5c2b-4b47-d2a1-08d558129279'];
+    lunchData.selectedRestaurants = ['21f31565-5c2b-4b47-d2a1-08d558129279'];
     lunchData.selectedDate = (new Date());
     if (lunchData.selectedDate.getHours() > 15) {
         lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + 1);
@@ -72,19 +74,23 @@ function setupLunchMenu() {
 
 function fetchLunchMenu() {
     jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
-    var monday = getMondayOfWeek(lunchData.selectedDate);
-    var friday = getMondayOfWeek(lunchData.selectedDate);
-    friday.setDate(friday.getDate()+4);
-    var monStr = monday.toLocaleDateString('sv-SE');
-    var friStr = friday.toLocaleDateString('sv-SE');
+    let selected_day = lunchData.selectedDate.toLocaleDateString('sv-SE')
     selectedRestaurantsOrdered = Object.values(lunchData.restaurants).filter(function(rest) {
         return lunchData.selectedRestaurants.includes(rest);
     });
     let requests = selectedRestaurantsOrdered.map(function(restID){
-        return fetch('https://carbonateapiprod.azurewebsites.net/api/v1/mealprovidingunits/'+restID+'/dishoccurrences?startDate='+monStr+'&endDate='+friStr)
+        return fetch('https://plateimpact-heimdall.azurewebsites.net/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: '{"query": "query DishOccurrencesByTimeRangeQuery($mealProvidingUnitID: String = \\"'+restID+'\\", $startDate: String = \\"'+selected_day+'\\", $endDate: String = \\"'+selected_day+'\\") {dishOccurrencesByTimeRange(mealProvidingUnitID: $mealProvidingUnitID, startDate: $startDate, endDate: $endDate) {...MenuDishOccurrence}} fragment MenuDishOccurrence on DishOccurrence {displayNames {name categoryName} startDate dishType {name} dish {name}}"}'
+        })
         .then(function(response) {
             return response.json();
         }).then(function(json){
+            json.restID = restID;
+            json.restaurantName = document.getElementById('rest-' + restID).parentElement.textContent;
             return parseLunchMenu(json);
         });
     });
@@ -92,6 +98,7 @@ function fetchLunchMenu() {
         lunchData.allMenus = allMenus;
         printLunchMenu();
     }).catch(function(e){
+        console.log(e)
         jQuery("#lunch-menu").removeClass('spinner').html('<h2>Could not load.</h2>');
     });
     
@@ -111,24 +118,7 @@ function printLunchMenu() {
         restMenu.dishes.map(function(dish){
             if (dish.recipes.length > 0) {
                 html += '<dt>'+dish.name+'</dt>';
-                dish.recipes.map(function(recipe){
-                    html += '<dd class="lunch-menu-dish">'+recipe.dish;
-                    if (recipe.allergens.length > 0) {
-                        let allergens = recipe.allergens.map(function(allergy){
-                            return '<img src="'+allergy.imageURL+'" alt="'+allergy.name+'" title="'+allergy.name+'" />';
-                        }).join('');
-                        html += allergens;
-                    }
-                    html += '</dd>';
-                    if (recipe.price > 0) {
-                        html += '<dd class="lunch-menu-price">'+recipe.price+' kr</dd>';
-                    }
-                    if (recipe.CO2 > 0) {
-                        html += '<dd class="lunch-menu-co2" title="'+recipe.CO2+' kg CO2-eq" data-co2="'+recipe.CO2+'">'+recipe.CO2+' <span>kg CO2-eq</span></dd>';
-                    } else {
-                        html += '<dd class="lunch-menu-co2" style="height:1px;visibility:hidden;margin:0;"></dd>';
-                    }
-                });
+                html += '<dd class="lunch-menu-dish">'+dish.recipes
             }
         });
         html += '</dl>';
@@ -149,37 +139,23 @@ function parseLunchMenu(json) {
     if (json.length === 0) {
         return null;
     }
-    let lang = +(ftek_info.language === 'en-US');
-    let nameKey = ['dishTypeName','dishTypeNameEnglish'][lang];
-    let displayNameCategoryName = ['Swedish','English'][lang];
-    menus = {
-        restaurantName: json[0].mealProvidingUnit.mealProvidingUnitName,
-        restID: json[0].mealProvidingUnitID,
-        dishes: json[0].availableDishTypes.map(function(dishType) {
+    let is_en = +(ftek_info.language === 'en-US');
+    let lang = ['Swedish','English'][is_en];
+    let menu = {
+        restaurantName: json.restaurantName,
+        restID: json.restID,
+        dishes: json.data.dishOccurrencesByTimeRange.map(function (dishType) {
             return {
-                name: dishType[nameKey],
-                recipes: json.filter(function(dish){
-                    return (dish.dishTypeID === dishType.id && sameDate(lunchData.selectedDate, new Date(dish.startDate)));
-                }).map(function(recipe){
-                    return {
-                        dish: recipe.displayNames.filter(function(displayName){
-                            return displayName.displayNameCategory.displayNameCategoryName===displayNameCategoryName
-                        })[0].dishDisplayName,
-                        CO2: Math.round(recipe.dish.totalEmission*100)/100,
-                        allergens: recipe.dish.recipes[0].allergens.map(function(allergy){
-                            return {
-                                name: allergy.allergenCode.charAt(0).toUpperCase() + allergy.allergenCode.slice(1),
-                                imageURL: allergy.allergenURL,
-                            }
-                        }),
-                        price: recipe.dish.price,
+                name: dishType.dishType.name,
+                recipes: dishType.displayNames.filter(function (name) {
+                    if (name.categoryName === lang) {
+                        return name.name
                     }
-                }),
+                })[0].name
             };
         })
-    }
-    
-    return menus;
+    };
+    return menu;
 }
 
 setupLunchMenu();

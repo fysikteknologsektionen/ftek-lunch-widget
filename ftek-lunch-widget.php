@@ -3,7 +3,7 @@
 Plugin Name: Ftek Lunch Widget
 Description: A widget showing the lunches at Chalmers University
 Author: Johan Winther
-Version: 1.2.5
+Version: 1.3.0
 Text Domain: chlw
 Domain Path: /languages
 GitHub Plugin URI: fysikteknologsektionen/ftek-lunch-widget
@@ -18,14 +18,9 @@ function init_chlw() {
 
 function chlw_get_restaurants() {
   return array(
-    "Express" => '3d519481-1667-4cad-d2a3-08d558129279',
     "Kårrestaurangen" => '21f31565-5c2b-4b47-d2a1-08d558129279',
-    "Linsen" => 'b672efaf-032a-4bb8-d2a5-08d558129279',
-    "Hyllan" => 'a7f0f75b-c1cb-4fc3-d2a6-08d558129279',
     "S.M.A.K" => '3ac68e11-bcee-425e-d2a8-08d558129279',
-    "L's Express" => '871c63d7-4ddb-46b8-d2a0-08d558129279',
     "L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
-    "L's Resto" => 'c6742862-3cc5-47b1-d2a4-08d558129279',
     "Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
     );
 }
@@ -67,7 +62,7 @@ class ChalmersLunchWidget extends WP_Widget {
     // Some WP fluff
     echo $args['before_widget'];
     $title = apply_filters( 'widget_title', $title);
-    echo $args['before_title'] . '<a href="https://chalmerskonferens.se/lunchmenyer-johanneberg/" target="_blank" class="no-external">' . $title .'</a>'. $args['after_title'];
+    echo $args['before_title'] . '<a href="https://chalmerskonferens.se/lunchmenyer-johanneberg-2/" target="_blank" class="no-external">' . $title .'</a>'. $args['after_title'];
     
     echo '<div id="lunch-menu-day">';
     echo '<button class="button" data-action="prev">&laquo;</button>';
