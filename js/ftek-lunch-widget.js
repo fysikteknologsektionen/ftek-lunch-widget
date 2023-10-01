@@ -15,7 +15,7 @@ function setCookie(name, value, days) {
 }
 
 function getMondayOfWeek(d) {
-    // Not used in current version
+    // Legacy function
     d = new Date(d);
     var day = d.getDay(),
     diff = d.getDate() - day + (day == 0 ? -6:1);
@@ -23,18 +23,20 @@ function getMondayOfWeek(d) {
 }
 
 function sameDate(d1, d2) {
+    // Legacy function
     return d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
 }
 
 function setupLunchMenu() {
-    
+    // Selects restaurants according to the saved cookie or defaults to Kårres
     lunchData.selectedRestaurants = ['21f31565-5c2b-4b47-d2a1-08d558129279'];
     lunchData.selectedDate = (new Date());
     if (lunchData.selectedDate.getHours() > 15) {
         lunchData.selectedDate.setDate(lunchData.selectedDate.getDate() + 1);
     }
+
     document.getElementById('lunch-menu-day').children[1].textContent = lunchData.selectedDate.toLocaleDateString(ftek_info.language, { weekday: 'long', day: 'numeric', month: 'numeric' });
     let restaurants = getCookieValue('ftek-lunch-restaurants');
     if (restaurants) {
@@ -72,13 +74,50 @@ function setupLunchMenu() {
     });
 }
 
+function parseWijkandersLunchMenu(selected_day) {
+    let days = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
+    let date = days[selected_day.getDay()]+" "+selected_day.getDate()+"/"+selected_day.getMonth();
+    let is_en = +(ftek_info.language === 'en-US');
+    let fish = ['Fisk', 'Fish'][is_en];
+    let meat = ['Kött', 'Meat'][is_en]
+    let node_index = 0;
+    let menu = "";
+    document.getElementById('wijkanders-menu').childNodes.forEach(function (node) {
+        let node_text = node.textContent.split('\n');
+        if (node_text[0] === date){
+            node_index = node.index;
+            menu = node_text;
+        }
+    })
+    let veg_recipes = [menu[1].split(':')[1].trim(),menu[2]][is_en];
+    let fish_recipes = [menu[3].split(':')[1].trim(),menu[4]][is_en];
+    let meat_recipes = [menu[5].split(':')[1].trim(),menu[6]][is_en];
+    return {
+        restaurantName: 'Wijkanders',
+        restID: 'wijkanders',
+        dishes: [{
+            name: 'Veg',
+            recipes: veg_recipes,
+        },{
+            name: fish,
+            recipes: fish_recipes,
+        },{
+            name: meat,
+            recipes: meat_recipes,
+        }]
+    }
+}
+
 function fetchLunchMenu() {
     jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
     let selected_day = lunchData.selectedDate.toLocaleDateString('sv-SE')
-    selectedRestaurantsOrdered = Object.values(lunchData.restaurants).filter(function(rest) {
+    let selectedRestaurantsOrdered = Object.values(lunchData.restaurants).filter(function (rest) {
         return lunchData.selectedRestaurants.includes(rest);
     });
     let requests = selectedRestaurantsOrdered.map(function(restID){
+        if (restID === 'wijkanders') {
+            return parseWijkandersLunchMenu(lunchData.selectedDate);
+        }
         return fetch('https://plateimpact-heimdall.azurewebsites.net/graphql', {
             method: 'POST',
             headers: {
@@ -86,19 +125,18 @@ function fetchLunchMenu() {
             },
             body: '{"query": "query DishOccurrencesByTimeRangeQuery($mealProvidingUnitID: String = \\"'+restID+'\\", $startDate: String = \\"'+selected_day+'\\", $endDate: String = \\"'+selected_day+'\\") {dishOccurrencesByTimeRange(mealProvidingUnitID: $mealProvidingUnitID, startDate: $startDate, endDate: $endDate) {...MenuDishOccurrence}} fragment MenuDishOccurrence on DishOccurrence {displayNames {name categoryName} startDate dishType {name} dish {name}}"}'
         })
-        .then(function(response) {
-            return response.json();
-        }).then(function(json){
-            json.restID = restID;
-            json.restaurantName = document.getElementById('rest-' + restID).parentElement.textContent;
-            return parseLunchMenu(json);
-        });
+            .then(function(response) {
+                return response.json();
+            }).then(function(json){
+                json.restID = restID;
+                json.restaurantName = document.getElementById('rest-' + restID).parentElement.textContent;
+                return parseLunchMenu(json);
+            });
     });
     Promise.all(requests).then(function(allMenus){
         lunchData.allMenus = allMenus;
         printLunchMenu();
     }).catch(function(e){
-        console.log(e)
         jQuery("#lunch-menu").removeClass('spinner').html('<h2>Could not load.</h2>');
     });
     
@@ -141,7 +179,7 @@ function parseLunchMenu(json) {
     }
     let is_en = +(ftek_info.language === 'en-US');
     let lang = ['Swedish','English'][is_en];
-    let menu = {
+    return {
         restaurantName: json.restaurantName,
         restID: json.restID,
         dishes: json.data.dishOccurrencesByTimeRange.map(function (dishType) {
@@ -155,7 +193,6 @@ function parseLunchMenu(json) {
             };
         })
     };
-    return menu;
 }
 
 setupLunchMenu();

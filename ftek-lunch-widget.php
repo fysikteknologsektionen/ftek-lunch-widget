@@ -3,7 +3,7 @@
 Plugin Name: Ftek Lunch Widget
 Description: A widget showing the lunches at Chalmers University
 Author: Johan Winther
-Version: 1.3.0
+Version: 1.4.0
 Text Domain: chlw
 Domain Path: /languages
 GitHub Plugin URI: fysikteknologsektionen/ftek-lunch-widget
@@ -19,10 +19,37 @@ function init_chlw() {
 function chlw_get_restaurants() {
   return array(
     "Kårrestaurangen" => '21f31565-5c2b-4b47-d2a1-08d558129279',
+    "Wijkanders" => 'wijkanders',
     "S.M.A.K" => '3ac68e11-bcee-425e-d2a8-08d558129279',
     "L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
     "Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
     );
+}
+
+function get_wijkanders() {
+    $url = "https://wijkanders.se/restaurangen/";
+    $response = file_get_contents($url);
+    $page = new DOMDocument();
+    libxml_use_internal_errors(true);
+    $page -> loadHTML($response);
+    $text_nodes = $page -> getElementsByTagName('p');
+    $start = 0;
+    foreach (range(0,$text_nodes->count()) as $i) {
+        $text = $text_nodes->item($i)->textContent;
+        if(str_starts_with($text,'Måndag')) {
+            $start = $i;
+        }
+    }
+
+    if ($start == 0) {
+        return null;
+    }
+
+    $menu = [];
+    foreach (range($start,$start+4) as $i) {
+        $menu[] = $text_nodes->item($i);
+    }
+    return $menu;
 }
 
 /*
@@ -44,6 +71,7 @@ class ChalmersLunchWidget extends WP_Widget {
 
   function widget( $args, $instance ) {
     // Default Settings
+    $wijkanders_menu = get_wijkanders();
     $all_restaurants = chlw_get_restaurants();
     $lang = qtrans_getLanguage();
     $lunch_data = array(
@@ -53,6 +81,7 @@ class ChalmersLunchWidget extends WP_Widget {
         'tomorrowsLunch' => __("Tomorrow's lunch","chlw"),
       ),
     );
+
     wp_enqueue_style('ftek-lunch-widget-style', plugin_dir_url( __FILE__ ) .'css/ftek-lunch-widget.css', null, null, 'all' );
     wp_enqueue_script('ftek-lunch-widget-script', plugin_dir_url( __FILE__ ) .'js/ftek-lunch-widget.js', array( 'jquery' ), null, true );
     wp_localize_script( 'ftek-lunch-widget-script', 'lunchData', $lunch_data );
@@ -77,6 +106,13 @@ class ChalmersLunchWidget extends WP_Widget {
     echo '</menu></div>';
     echo '</div>';
     echo '<div id="lunch-menu">'.__('Please enable Javascript.','chlw').'</div>';
+      echo '<div style="display: none; visibility: hidden" hidden id="wijkanders-menu">';
+      if ($wijkanders_menu != null) {
+          foreach ($wijkanders_menu as $day_menu) {
+              echo $day_menu->C14N();
+          }
+      }
+      echo '</div>';
 
     echo $args['after_widget'];
   }
