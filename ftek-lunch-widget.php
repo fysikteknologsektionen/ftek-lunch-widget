@@ -3,7 +3,7 @@
 Plugin Name: Ftek Lunch Widget
 Description: A widget showing the lunches at Chalmers University
 Author: Johan Winther
-Version: 1.4.0
+Version: 1.4.1
 Text Domain: chlw
 Domain Path: /languages
 GitHub Plugin URI: fysikteknologsektionen/ftek-lunch-widget
@@ -27,8 +27,12 @@ function chlw_get_restaurants() {
 }
 
 function get_wijkanders() {
+    $ctx = stream_context_create(array('http' =>
+        array(
+            'timeout' => 2,
+        )));
     $url = "https://wijkanders.se/restaurangen/";
-    $response = file_get_contents($url);
+    $response = file_get_contents($url, false, $ctx);
     $page = new DOMDocument();
     libxml_use_internal_errors(true);
     $page -> loadHTML($response);

@@ -76,7 +76,7 @@ function setupLunchMenu() {
 
 function parseWijkandersLunchMenu(selected_day) {
     let days = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
-    let date = days[selected_day.getDay()]+" "+selected_day.getDate()+"/"+selected_day.getMonth();
+    let date = days[selected_day.getDay()]+" "+selected_day.getDate()+"/"+(selected_day.getMonth()+1);
     let is_en = +(ftek_info.language === 'en-US');
     let fish = ['Fisk', 'Fish'][is_en];
     let meat = ['Kött', 'Meat'][is_en]
