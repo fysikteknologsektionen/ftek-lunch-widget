@@ -83,7 +83,7 @@ function parseWijkandersLunchMenu(selected_day) {
     let node_index = 0;
     let menu = "";
     document.getElementById('wijkanders-menu').childNodes.forEach(function (node) {
-        let node_text = node.textContent.split('\n');
+        let node_text = node.textContent.split(' ');
         if (node_text[0] === date){
             node_index = node.index;
             menu = node_text;
