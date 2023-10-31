@@ -3,7 +3,7 @@
 Plugin Name: Ftek Lunch Widget
 Description: A widget showing the lunches at Chalmers University
 Author: Johan Winther
-Version: 1.4.1
+Version: 1.4.2
 Text Domain: chlw
 Domain Path: /languages
 GitHub Plugin URI: fysikteknologsektionen/ftek-lunch-widget
