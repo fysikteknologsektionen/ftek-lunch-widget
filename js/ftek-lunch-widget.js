@@ -76,10 +76,10 @@ function setupLunchMenu() {
 
 function parseWijkandersLunchMenu(selected_day) {
     let days = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
-    let date = days[selected_day.getDay()]+" "+selected_day.getDate()+"/"+(selected_day.getMonth()+1);
+    let date = days[selected_day.getDay()];
     let is_en = +(ftek_info.language === 'en-US');
     let fish = ['Fisk', 'Fish'][is_en];
-    let meat = ['Kött', 'Meat'][is_en]
+    let meat = ['Kött', 'Meat'][is_en];
     let node_index = 0;
     let menu = "";
     document.getElementById('wijkanders-menu').childNodes.forEach(function (node) {
@@ -88,7 +88,7 @@ function parseWijkandersLunchMenu(selected_day) {
             node_index = node.index;
             menu = node_text;
         }
-    })
+    });
     let veg_recipes = [menu[1].split(':')[1].trim(),menu[2]][is_en];
     let fish_recipes = [menu[3].split(':')[1].trim(),menu[4]][is_en];
     let meat_recipes = [menu[5].split(':')[1].trim(),menu[6]][is_en];
