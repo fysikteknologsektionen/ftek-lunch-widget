@@ -116,3 +116,9 @@
     margin: 0 1em;
     font-size: 0.8em;
 }
+
+@media (prefers-color-scheme: dark) {
+  #lunch-menu-restaurants {
+    background-color: #262730;
+  }
+}
