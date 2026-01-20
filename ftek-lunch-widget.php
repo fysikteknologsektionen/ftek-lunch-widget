@@ -50,8 +50,8 @@ function get_wijkanders() {
     }
 
     $menu = [];
-    foreach (range($start,$start+9) as $i) {
-        $menu[] = $text_nodes->item($i)->textContent;
+    foreach (range($start,$start+9,2) as $i) {
+        $menu[] = $text_nodes->item($i)->textContent . "\n" . $text_nodes->item($i+1)->textContent;
     }
     return $menu;
 }
@@ -113,7 +113,7 @@ class ChalmersLunchWidget extends WP_Widget {
       echo '<div style="display: none; visibility: hidden" hidden id="wijkanders-menu">';
       if ($wijkanders_menu != null) {
           foreach ($wijkanders_menu as $day_menu) {
-              echo $day_menu->C14N();
+              echo $day_menu;
           }
       }
       echo '</div>';
