@@ -51,8 +51,7 @@ function get_wijkanders() {
 
     $menu = [];
     foreach (range($start,$start+9,2) as $i) {
-      $text_nodes->item($i)->appendChild($text_nodes->item($i+1));
-      $text_nodes->item($i)->normalize();
+      $text_nodes->item($i)->textContent .= $text_nodes->item($i+1)->textContent;
       $menu[] = $text_nodes->item($i);
     }
     return $menu;
