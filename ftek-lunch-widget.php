@@ -113,7 +113,7 @@ class ChalmersLunchWidget extends WP_Widget {
       echo '<div style="display: none; visibility: hidden" hidden id="wijkanders-menu">';
       if ($wijkanders_menu != null) {
           foreach ($wijkanders_menu as $day_menu) {
-              echo $day_menu;
+              echo $day_menu . "\n";
           }
       }
       echo '</div>';
