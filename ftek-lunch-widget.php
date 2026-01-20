@@ -50,8 +50,8 @@ function get_wijkanders() {
     }
 
     $menu = [];
-    foreach (range($start,$start+9,2) as $i) {
-        $menu[] = $text_nodes->item($i)->textContent . "\n" . $text_nodes->item($i+1)->textContent;
+    foreach (range($start,$start+9) as $i) {
+        $menu[] = $text_nodes->item($i);
     }
     return $menu;
 }
