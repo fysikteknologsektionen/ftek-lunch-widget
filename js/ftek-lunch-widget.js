@@ -83,7 +83,6 @@ function parseWijkandersLunchMenu(selected_day) {
     let node_index = 0;
     let menu = "";
     document.getElementById('wijkanders-menu').childNodes.forEach(function (node) {
-        console.log(node.textContent)
         let node_text = node.textContent.split('\n');
         let day = node_text[0].split(' ')[0];
         if (day === date){
