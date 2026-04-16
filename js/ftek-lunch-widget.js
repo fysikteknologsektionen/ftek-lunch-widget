@@ -140,7 +140,7 @@ function printLunchMenu() {
 function translateDishCategory(type, is_en) {
     const translation_table = {
         "Fisk": "Fish",
-        "Kött": "Meaty",
+        "Kött": "Meat",
         "Vegetarisk": "Vegetarian",
         "Övrigt": "Other",
     };
