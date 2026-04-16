@@ -19,48 +19,11 @@ function init_chlw() {
 function chlw_get_restaurants() {
   return array(
     "Kårrestaurangen" => '21f31565-5c2b-4b47-d2a1-08d558129279',
-    "Wijkanders" => 'wijkanders',
+    "Wijkanders" => 'c296e4fe-641c-4599-5874-08de731fd655',
     "S.M.A.K" => '3ac68e11-bcee-425e-d2a8-08d558129279',
-    "L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
-    "Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
+    //"L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
+    //"Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
     );
-}
-
-function get_wijkanders() {
-    $ctx = stream_context_create(array('http' =>
-        array(
-            'timeout' => 2,
-        )));
-    $url = "https://wijkanders.se/restaurangen/";
-    $response = file_get_contents($url, false, $ctx);
-    $page = new DOMDocument();
-    libxml_use_internal_errors(true);
-    $page -> loadHTML($response);
-    $text_nodes = $page -> getElementsByTagName('p');
-    $start = 0;
-    foreach (range(0,$text_nodes->count()) as $i) {
-        $text = $text_nodes->item($i)->textContent;
-        if(str_starts_with($text,'Måndag')) {
-            $start = $i;
-        }
-    }
-
-    if ($start == 0) {
-        return null;
-    }
-
-    $menu = [];
-    foreach (range($start,$start+9,2) as $i) {
-      $target = $text_nodes->item($i);     // day
-      $source = $text_nodes->item($i + 1); // foods
-      $target->appendChild($target->ownerDocument->createTextNode("\n"));
-      while ($source->firstChild) {
-          $target->appendChild($source->firstChild);
-      }
-
-      $menu[] = $target;
-    }
-    return $menu;
 }
 
 /*
@@ -82,7 +45,6 @@ class ChalmersLunchWidget extends WP_Widget {
 
   function widget( $args, $instance ) {
     // Default Settings
-    $wijkanders_menu = get_wijkanders();
     $all_restaurants = chlw_get_restaurants();
     $lang = qtrans_getLanguage();
     $lunch_data = array(
@@ -117,14 +79,6 @@ class ChalmersLunchWidget extends WP_Widget {
     echo '</menu></div>';
     echo '</div>';
     echo '<div id="lunch-menu">'.__('Please enable Javascript.','chlw').'</div>';
-      echo '<div style="display: none; visibility: hidden" hidden id="wijkanders-menu">';
-      if ($wijkanders_menu != null) {
-          foreach ($wijkanders_menu as $day_menu) {
-              echo $day_menu->C14N();
-          }
-      }
-      echo '</div>';
-
     echo $args['after_widget'];
   }
 
