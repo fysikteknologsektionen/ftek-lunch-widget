@@ -117,9 +117,9 @@ function printLunchMenu() {
         html += '<h2>' + restMenu.restaurantName + '</h2>';
         html += '<dl>';
         restMenu.dishes.map(function(dish){
-            if (dish.recipes.length > 0) {
-                html += '<dt>'+dish.name+'</dt>';
-                html += '<dd class="lunch-menu-dish">'+dish.recipes
+            if (dish.name !== "") {
+                html += '<dt>'+dish.category+'</dt>';
+                html += '<dd class="lunch-menu-dish">'+dish.name
             }
         });
         html += '</dl>';
@@ -136,23 +136,38 @@ function printLunchMenu() {
     }, 1);
 }
 
+function translateDishCategory(type, is_en) {
+    const translation_table = {
+        "Fisk": "Fish",
+        "Kött": "Meaty",
+        "Vegetarisk": "Vegetarian",
+        "Övrigt": "Other",
+    };
+
+    if (type === null) {
+        type = "Övrigt";
+    }
+
+    if (is_en) {
+        return translation_table[type] ?? type
+    }
+    
+    return type
+}
+
 function parseLunchMenu(json) {
     if (json.length === 0) {
         return null;
     }
     let is_en = +(ftek_info.language === 'en-US');
-    let lang = ['Swedish','English'][is_en];
+    let lang = [['Swedish', 'Svenska'], ['English', 'Engelska']][is_en];
     return {
         restaurantName: json.restaurantName,
         restID: json.restID,
-        dishes: json.data.dishOccurrencesByTimeRange.map(function (dishType) {
+        dishes: json.data.dishOccurrencesByTimeRange.map(function (dish) {
             return {
-                name: dishType.dishType.name,
-                recipes: dishType.displayNames.filter(function (name) {
-                    if (name.categoryName === lang) {
-                        return name.name
-                    }
-                })[0].name
+                category: translateDishCategory(dish.dishType.name, is_en),
+                name: dish.displayNames.find(n => lang.includes(n.categoryName))?.name ?? ""
             };
         })
     };
