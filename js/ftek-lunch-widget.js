@@ -107,13 +107,13 @@ function fetchLunchMenu() {
 }
 
 function printLunchMenu() {
-    if (lunchData.allMenus.length === 0 || lunchData.allMenus.every(e => e === null) || lunchData.allMenus.every(e => e.dishes.every(e=>e.recipes.length === 0))) {
+    if (lunchData.allMenus.length === 0 || lunchData.allMenus.every(e => e === null) || lunchData.allMenus.every(e => e.dishes.every(e=>e.name.length === 0))) {
         jQuery("#lunch-menu").removeClass('spinner').html('<h2>'+lunchData.localizedStrings.noLunch+'</h2>');
         return;
     }
     let html = '';
     lunchData.allMenus.map(function(restMenu, i){
-        if (!restMenu || restMenu.dishes.filter(function(dish){return dish.recipes.length>0}).length === 0) return;
+        if (!restMenu || restMenu.dishes.filter(function(dish){return dish.name.length>0}).length === 0) return;
         
         html += '<h2>' + restMenu.restaurantName + '</h2>';
         html += '<dl>';
@@ -145,7 +145,7 @@ function translateDishCategory(type, is_en) {
         "Övrigt": "Other",
     };
 
-    if (type === null) {
+    if (!type) {
         type = "Övrigt";
     }
 
@@ -167,7 +167,7 @@ function parseLunchMenu(json) {
         restID: json.restID,
         dishes: json.data.dishOccurrencesByTimeRange.map(function (dish) {
             return {
-                category: translateDishCategory(dish.dishType.name, is_en),
+                category: translateDishCategory(dish.dishType?.name, is_en),
                 name: dish.displayNames.find(n => lang.includes(n.categoryName))?.name ?? ""
             };
         })
