@@ -21,8 +21,8 @@ function chlw_get_restaurants() {
     "Kårrestaurangen" => '21f31565-5c2b-4b47-d2a1-08d558129279',
     "Wijkanders" => 'c296e4fe-641c-4599-5874-08de731fd655',
     "S.M.A.K" => '3ac68e11-bcee-425e-d2a8-08d558129279',
-    "L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
-    "Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
+    //"L's Kitchen" => 'c74da2cf-aa1a-4d3a-9ba6-08d5569587a1',
+    //"Kokboken" => '4dce0df9-c6e7-46cf-d2a7-08d558129279',
     );
 }
 
