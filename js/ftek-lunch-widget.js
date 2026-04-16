@@ -74,41 +74,6 @@ function setupLunchMenu() {
     });
 }
 
-function parseWijkandersLunchMenu(selected_day) {
-    let days = ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"];
-    let date = days[selected_day.getDay()];
-    let is_en = +(ftek_info.language === 'en-US');
-    let fish = ['Fisk', 'Fish'][is_en];
-    let meat = ['Kött', 'Meat'][is_en];
-    let node_index = 0;
-    let menu = "";
-    document.getElementById('wijkanders-menu').childNodes.forEach(function (node) {
-        let node_text = node.textContent.split('\n');
-        let day = node_text[0].split(' ')[0];
-        if (day === date){
-            node_index = node.index;
-            menu = node_text;
-        }
-    });
-    let veg_recipes = [menu[1].split(':')[1].trim(),menu[2]][is_en];
-    let fish_recipes = [menu[3].split(':')[1].trim(),menu[4]][is_en];
-    let meat_recipes = [menu[5].split(':')[1].trim(),menu[6]][is_en];
-    return {
-        restaurantName: 'Wijkanders',
-        restID: 'wijkanders',
-        dishes: [{
-            name: 'Veg',
-            recipes: veg_recipes,
-        },{
-            name: fish,
-            recipes: fish_recipes,
-        },{
-            name: meat,
-            recipes: meat_recipes,
-        }]
-    }
-}
-
 function fetchLunchMenu() {
     jQuery('.ftek_lunch_widget #lunch-menu').text('').addClass('spinner');
     let selected_day = lunchData.selectedDate.toLocaleDateString('sv-SE')
@@ -116,9 +81,6 @@ function fetchLunchMenu() {
         return lunchData.selectedRestaurants.includes(rest);
     });
     let requests = selectedRestaurantsOrdered.map(function(restID){
-        if (restID === 'wijkanders') {
-            return parseWijkandersLunchMenu(lunchData.selectedDate);
-        }
         return fetch('https://plateimpact-heimdall.azurewebsites.net/graphql', {
             method: 'POST',
             headers: {
