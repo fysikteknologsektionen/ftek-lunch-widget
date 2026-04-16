@@ -100,6 +100,7 @@ function fetchLunchMenu() {
         lunchData.allMenus = allMenus;
         printLunchMenu();
     }).catch(function(e){
+        console.error(e);
         jQuery("#lunch-menu").removeClass('spinner').html('<h2>Could not load.</h2>');
     });
     
